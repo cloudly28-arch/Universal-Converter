@@ -1,16 +1,24 @@
-// BaseParser.h
 #pragma once
+
 #include "BigFraction.h"
+
 #include <string>
+#include <vector>
 
 class BaseParser {
 public:
-    // Разбирает строку вида "123.45(67)" в системе счисления base
-    static BigFraction parse(const std::string& input, int base);
+    static BigFraction parse(const std::string& text, int base);
 
 private:
-    // Преобразует строку цифры (напр. "A", "[222]") в значение
-    static int parseDigit(const std::string& token, int base);
-    // Преобразует строку в BigInteger в заданной системе счисления
-    static BigInteger parseNumber(const std::string& str, int base);
+    struct ParsedNumber {
+        std::vector<int> integerDigits;
+        std::vector<int> fractionDigits;
+        std::vector<int> periodDigits;
+        bool hasPoint = false;
+        bool hasPeriod = false;
+    };
+
+    static ParsedNumber readDigits(const std::string& text, int base);
+    static int readOneDigit(const std::string& text, int& pos, int base);
+    static BigInteger digitsToInteger(const std::vector<int>& digits, int base);
 };

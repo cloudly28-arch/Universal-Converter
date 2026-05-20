@@ -1,43 +1,104 @@
-// BigFraction.cpp
 #include "BigFraction.h"
 
-// Нормализация: сокращение дроби через НОД
-// Для 10 класса: работаем только с неотрицательными числами
-void BigFraction::normalize() {
-    if (den.isZero()) throw std::runtime_error("Denominator cannot be zero");
+#include <stdexcept>
 
-    // Если числитель 0, дробь = 0/1
-    if (num.isZero()) {
-        den = BigInteger(1);
+BigFraction::BigFraction() : numerator_(0), denominator_(1) {
+}
+
+BigFraction::BigFraction(const BigInteger& numerator)
+    : numerator_(numerator), denominator_(1) {
+}
+
+BigFraction::BigFraction(const BigInteger& numerator, const BigInteger& denominator)
+    : numerator_(numerator), denominator_(denominator) {
+    if (denominator_.isZero()) {
+        throw std::runtime_error("знаменатель дроби не может быть равен нулю");
+    }
+    reduce();
+}
+
+const BigInteger& BigFraction::numerator() const {
+    return numerator_;
+}
+
+const BigInteger& BigFraction::denominator() const {
+    return denominator_;
+}
+
+BigInteger BigFraction::integerPart() const {
+    return numerator_ / denominator_;
+}
+
+BigInteger BigFraction::remainder() const {
+    return numerator_ % denominator_;
+}
+
+bool BigFraction::isZero() const {
+    return numerator_.isZero();
+}
+
+void BigFraction::reduce() {
+    if (numerator_.isZero()) {
+        denominator_ = BigInteger(1);
         return;
     }
+    BigInteger d = BigInteger::gcd(numerator_, denominator_);
+    numerator_ /= d;
+    denominator_ /= d;
+}
 
-    // Сокращаем через НОД
-    BigInteger g = BigInteger::gcd(num, den);
-    if (!g.isZero() && !(g == BigInteger(1))) {
-        auto [n, _] = num.divmod(g);  // num / g
-        auto [d, __] = den.divmod(g);  // den / g
-        num = n;
-        den = d;
+BigFraction& BigFraction::operator+=(const BigFraction& other) {
+    numerator_ = numerator_ * other.denominator_ + other.numerator_ * denominator_;
+    denominator_ = denominator_ * other.denominator_;
+    reduce();
+    return *this;
+}
+
+BigFraction& BigFraction::operator-=(const BigFraction& other) {
+    BigInteger left = numerator_ * other.denominator_;
+    BigInteger right = other.numerator_ * denominator_;
+    if (left < right) {
+        throw std::runtime_error("результат вычитания дробей отрицательный");
     }
+    numerator_ = left - right;
+    denominator_ = denominator_ * other.denominator_;
+    reduce();
+    return *this;
 }
 
-BigInteger BigFraction::getIntegerPart() const {
-    return num.divmod(den).first;
+BigFraction& BigFraction::operator*=(const BigFraction& other) {
+    numerator_ = numerator_ * other.numerator_;
+    denominator_ = denominator_ * other.denominator_;
+    reduce();
+    return *this;
 }
 
-BigInteger BigFraction::getRemainder() const {
-    return num.divmod(den).second;
+BigFraction& BigFraction::operator/=(const BigFraction& other) {
+    if (other.numerator_.isZero()) {
+        throw std::runtime_error("деление дроби на ноль");
+    }
+    numerator_ = numerator_ * other.denominator_;
+    denominator_ = denominator_ * other.numerator_;
+    reduce();
+    return *this;
 }
 
-BigFraction BigFraction::operator+(const BigFraction& other) const {
-    // a/b + c/d = (a*d + c*b) / (b*d)
-    BigInteger newNum = num * other.den + other.num * den;
-    BigInteger newDen = den * other.den;
-    return BigFraction(newNum, newDen);  // конструктор вызовет normalize()
+BigFraction operator+(BigFraction left, const BigFraction& right) {
+    left += right;
+    return left;
 }
 
-BigFraction BigFraction::operator*(const BigFraction& other) const {
-    // a/b * c/d = (a*c) / (b*d)
-    return BigFraction(num * other.num, den * other.den);
+BigFraction operator-(BigFraction left, const BigFraction& right) {
+    left -= right;
+    return left;
+}
+
+BigFraction operator*(BigFraction left, const BigFraction& right) {
+    left *= right;
+    return left;
+}
+
+BigFraction operator/(BigFraction left, const BigFraction& right) {
+    left /= right;
+    return left;
 }

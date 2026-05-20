@@ -1,29 +1,33 @@
-// BigFraction.h
 #pragma once
+
 #include "BigInteger.h"
 
 class BigFraction {
-private:
-    BigInteger num, den;  // num/den, всегда num >= 0, den > 0
-
-    // Приватный метод нормализации (сокращение дроби)
-    void normalize();
-
 public:
-    // Конструкторы
-    BigFraction() : num(0), den(1) {}
-    BigFraction(const BigInteger& n, const BigInteger& d) : num(n), den(d) { normalize(); }
+    BigFraction();
+    explicit BigFraction(const BigInteger& numerator);
+    BigFraction(const BigInteger& numerator, const BigInteger& denominator);
 
-    // Получение частей дроби
-    BigInteger getIntegerPart() const;   // Целая часть: num / den
-    BigInteger getRemainder() const;     // Остаток: num % den
+    const BigInteger& numerator() const;
+    const BigInteger& denominator() const;
 
-    // Арифметика (возвращают уже нормализованные дроби)
-    BigFraction operator+(const BigFraction& other) const;
-    BigFraction operator*(const BigFraction& other) const;
+    BigInteger integerPart() const;
+    BigInteger remainder() const;
+    bool isZero() const;
 
-    // Геттеры
-    bool isZero() const { return num.isZero(); }
-    const BigInteger& getNumerator() const { return num; }
-    const BigInteger& getDenominator() const { return den; }
+    BigFraction& operator+=(const BigFraction& other);
+    BigFraction& operator-=(const BigFraction& other);
+    BigFraction& operator*=(const BigFraction& other);
+    BigFraction& operator/=(const BigFraction& other);
+
+    friend BigFraction operator+(BigFraction left, const BigFraction& right);
+    friend BigFraction operator-(BigFraction left, const BigFraction& right);
+    friend BigFraction operator*(BigFraction left, const BigFraction& right);
+    friend BigFraction operator/(BigFraction left, const BigFraction& right);
+
+private:
+    BigInteger numerator_;
+    BigInteger denominator_;
+
+    void reduce();
 };
