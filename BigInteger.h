@@ -21,7 +21,6 @@ public:
             value /= BASE;
         }
     }
-
     explicit BigInteger(const std::string& value) {
         if (value.empty()) {
             throw std::runtime_error("пустая строка для BigInteger");
@@ -38,35 +37,33 @@ public:
         }
         removeLeadingZeros();
     }
-
     std::string toString() const {
         if (digits_.empty()) {
             return "0";
         }
         std::stringstream ss;
         ss << digits_.back();
-        for (int i = static_cast<int>(digits_.size()) - 2; i >= 0; --i) {
+        for (int i = digits_.size() - 2; i >= 0; --i) {
             ss << std::setw(BASE_DIGITS) << std::setfill('0') << digits_[i];
         }
         return ss.str();
     }
-
     bool isZero() const {
         return digits_.empty();
     }
 
     BigInteger& operator+=(const BigInteger& other) {
         int carry = 0;
-        size_t n = std::max(digits_.size(), other.digits_.size());
-        if (digits_.size() < n) {
+        int n = std::max(digits_.size(), other.digits_.size());
+        if (static_cast<int>(digits_.size()) < n) {
             digits_.resize(n, 0);
         }
-        for (size_t i = 0; i < n || carry != 0; ++i) {
-            if (i == digits_.size()) {
+        for (int i = 0; i < n || carry != 0; ++i) {
+            if (i == static_cast<int>(digits_.size())) {
                 digits_.push_back(0);
             }
-            long long cur = carry + digits_[i];
-            if (i < other.digits_.size()) {
+            long long cur = carry + static_cast<int>(digits_[i]);
+            if (i < static_cast<int>(other.digits_.size())) {
                 cur += other.digits_[i];
             }
             digits_[i] = static_cast<int>(cur % BASE);
@@ -88,7 +85,6 @@ public:
         int carry = 0;
         for (size_t i = 0; i < other.digits_.size() || carry != 0; ++i) {
             long long cur = digits_[i] - carry;
-
             if (i < other.digits_.size()) {
                 cur -= other.digits_[i];
             }
@@ -113,7 +109,6 @@ public:
         if (value < 0) {
             throw std::runtime_error("BigInteger не поддерживает отрицательные числа");
         }
-
         if (value == 0 || isZero()) {
             digits_.clear();
             return *this;
@@ -123,9 +118,8 @@ public:
             if (i == digits_.size()) {
                 digits_.push_back(0);
             }
-
             long long cur = carry + 1LL * digits_[i] * value;
-            digits_[i] = static_cast<int>(cur % BASE);
+            digits_[i] = cur % BASE;
             carry = cur / BASE;
         }
         removeLeadingZeros();
@@ -139,12 +133,12 @@ public:
         }
         BigInteger result;
         result.digits_.assign(digits_.size() + other.digits_.size(), 0);
-        for (size_t i = 0; i < digits_.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(digits_.size()); ++i) {
             long long carry = 0;
-            for (size_t j = 0; j < other.digits_.size() || carry != 0; ++j) {
+            for (int j = 0; j < static_cast<int>(other.digits_.size()) || carry != 0; ++j) {
                 long long current = result.digits_[i + j] + carry;
 
-                if (j < other.digits_.size()) {
+                if (j < static_cast<int>(other.digits_.size())) {
                     current += 1LL * digits_[i] * other.digits_[j];
                 }
                 result.digits_[i + j] = static_cast<int>(current % BASE);
@@ -184,16 +178,13 @@ public:
         }
         BigInteger quotient;
         BigInteger remainder;
-
         quotient.digits_.assign(digits_.size(), 0);
-
         for (int i = digits_.size() - 1; i >= 0; --i) {
             if (remainder.digits_.empty()) {
                 remainder.digits_.push_back(0);
             } else {
                 remainder.digits_.insert(remainder.digits_.begin(), 0);
             }
-
             remainder.digits_[0] = digits_[i];
             remainder.removeLeadingZeros();
             int left = 0;
@@ -203,7 +194,6 @@ public:
                 int middle = left + (right - left) / 2;
                 BigInteger current = other;
                 current *= middle;
-
                 if (current <= remainder) {
                     digit = middle;
                     left = middle + 1;
@@ -226,7 +216,6 @@ public:
         result /= other;
         return result;
     }
-
     BigInteger& operator%=(const BigInteger& other) {
         if (other.isZero()) {
             throw std::runtime_error("деление на ноль");
@@ -234,7 +223,6 @@ public:
         *this = *this - (*this / other) * other;
         return *this;
     }
-
     BigInteger operator%(const BigInteger& other) const {
         BigInteger result = *this;
         result %= other;

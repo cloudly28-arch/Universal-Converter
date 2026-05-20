@@ -34,7 +34,7 @@ BaseParser::ParsedNumber BaseParser::readDigits(const std::string& text, int bas
 
     ParsedNumber result;
     int pos = 0;
-    int part = 0; // 0 - целая, 1 - дробная, 2 - период
+    int part = 0;
     bool periodClosed = false;
 
     while (pos < static_cast<int>(text.size())) {
