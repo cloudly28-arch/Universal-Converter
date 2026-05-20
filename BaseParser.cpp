@@ -10,20 +10,27 @@ BigFraction BaseParser::parse(const std::string& text, int base) {
     BigInteger fractionValue = digitsToInteger(parsed.fractionDigits, base);
     BigInteger periodValue = digitsToInteger(parsed.periodDigits, base);
 
-    int k = static_cast<int>(parsed.fractionDigits.size());
-    int m = static_cast<int>(parsed.periodDigits.size());
+    int fractionSize = static_cast<int>(parsed.fractionDigits.size());
+    int periodSize = static_cast<int>(parsed.periodDigits.size());
 
-    BigInteger pk = BigInteger::powSmall(base, k);
+    BigInteger baseInFractionPower = BigInteger::powSmall(base, fractionSize);
 
     if (!parsed.hasPeriod) {
-        BigInteger numerator = integerValue * pk + fractionValue;
-        return BigFraction(numerator, pk);
+        BigInteger numerator = integerValue * baseInFractionPower + fractionValue;
+        BigInteger denominator = baseInFractionPower;
+
+        return BigFraction(numerator, denominator);
     }
 
-    BigInteger pm = BigInteger::powSmall(base, m);
-    BigInteger periodDenPart = pm - BigInteger(1);
-    BigInteger denominator = pk * periodDenPart;
-    BigInteger numerator = integerValue * denominator + fractionValue * periodDenPart + periodValue;
+    BigInteger baseInPeriodPower = BigInteger::powSmall(base, periodSize);
+    BigInteger periodPart = baseInPeriodPower - BigInteger(1);
+
+    BigInteger denominator = baseInFractionPower * periodPart;
+
+    BigInteger numerator = integerValue * denominator
+                           + fractionValue * periodPart
+                           + periodValue;
+
     return BigFraction(numerator, denominator);
 }
 
@@ -33,8 +40,10 @@ BaseParser::ParsedNumber BaseParser::readDigits(const std::string& text, int bas
     }
 
     ParsedNumber result;
+
     int pos = 0;
     int part = 0;
+
     bool periodClosed = false;
 
     while (pos < static_cast<int>(text.size())) {
@@ -52,9 +61,11 @@ BaseParser::ParsedNumber BaseParser::readDigits(const std::string& text, int bas
             if (result.hasPoint) {
                 throw std::runtime_error("Ошибка: точка встречается больше одного раза.");
             }
+
             if (result.integerDigits.empty()) {
                 throw std::runtime_error("Ошибка: отсутствует целая часть до точки.");
             }
+
             result.hasPoint = true;
             part = 1;
             ++pos;
@@ -65,9 +76,11 @@ BaseParser::ParsedNumber BaseParser::readDigits(const std::string& text, int bas
             if (!result.hasPoint) {
                 throw std::runtime_error("Ошибка: период может быть только после дробной точки.");
             }
+
             if (result.hasPeriod) {
                 throw std::runtime_error("Ошибка: период указан больше одного раза.");
             }
+
             result.hasPeriod = true;
             part = 2;
             ++pos;
@@ -78,15 +91,18 @@ BaseParser::ParsedNumber BaseParser::readDigits(const std::string& text, int bas
             if (!result.hasPeriod || part != 2) {
                 throw std::runtime_error("Ошибка: лишняя закрывающая скобка периода.");
             }
+
             if (result.periodDigits.empty()) {
                 throw std::runtime_error("Ошибка: период не может быть пустым.");
             }
+
             periodClosed = true;
             ++pos;
             continue;
         }
 
         int digit = readOneDigit(text, pos, base);
+
         if (part == 0) {
             result.integerDigits.push_back(digit);
         } else if (part == 1) {
@@ -99,12 +115,15 @@ BaseParser::ParsedNumber BaseParser::readDigits(const std::string& text, int bas
     if (result.integerDigits.empty()) {
         throw std::runtime_error("Ошибка: отсутствует целая часть числа.");
     }
+
     if (result.hasPoint && result.fractionDigits.empty() && !result.hasPeriod) {
         throw std::runtime_error("Ошибка: после точки должна быть дробная часть или период.");
     }
+
     if (result.hasPeriod && !periodClosed) {
         throw std::runtime_error("Ошибка: не закрыта скобка периода.");
     }
+
     if (result.hasPeriod && result.periodDigits.empty()) {
         throw std::runtime_error("Ошибка: период не может быть пустым.");
     }
@@ -114,6 +133,7 @@ BaseParser::ParsedNumber BaseParser::readDigits(const std::string& text, int bas
 
 int BaseParser::readOneDigit(const std::string& text, int& pos, int base) {
     char ch = text[pos];
+
     int value = -1;
 
     if (ch >= '0' && ch <= '9') {
@@ -127,39 +147,67 @@ int BaseParser::readOneDigit(const std::string& text, int& pos, int base) {
         ++pos;
     } else if (ch == '[') {
         ++pos;
+
         if (pos >= static_cast<int>(text.size()) || text[pos] == ']') {
             throw std::runtime_error("Ошибка: внутри квадратных скобок должна быть цифра.");
         }
-        std::string number;
+
+        std::string inside;
+
         while (pos < static_cast<int>(text.size()) && text[pos] != ']') {
-            if (text[pos] < '0' || text[pos] > '9') {
-                throw std::runtime_error("Ошибка: внутри квадратных скобок должны быть только десятичные цифры.");
-            }
-            number.push_back(text[pos]);
+            inside.push_back(text[pos]);
             ++pos;
         }
+
         if (pos == static_cast<int>(text.size())) {
             throw std::runtime_error("Ошибка: не закрыта квадратная скобка.");
         }
+
         ++pos;
-        value = std::stoi(number);
+
+        if (inside.size() == 1) {
+            char symbol = inside[0];
+
+            if (symbol >= '0' && symbol <= '9') {
+                value = symbol - '0';
+            } else if (symbol >= 'A' && symbol <= 'Z') {
+                value = symbol - 'A' + 10;
+            } else if (symbol >= 'a' && symbol <= 'z') {
+                value = symbol - 'a' + 10;
+            } else {
+                throw std::runtime_error("Ошибка: внутри квадратных скобок недопустимый символ.");
+            }
+        } else {
+            for (char symbol : inside) {
+                if (symbol < '0' || symbol > '9') {
+                    throw std::runtime_error("Ошибка: внутри квадратных скобок должно быть число или одна буква.");
+                }
+            }
+
+            value = std::stoi(inside);
+        }
     } else {
-        throw std::runtime_error("Ошибка: недопустимый символ в позиции " + std::to_string(pos + 1) + ".");
+        throw std::runtime_error("Ошибка: недопустимый символ в позиции "
+                                 + std::to_string(pos + 1) + ".");
     }
 
     if (value >= base) {
-        throw std::runtime_error("Ошибка: цифра " + std::to_string(value) +
-                                 " недопустима в системе счисления с основанием " +
-                                 std::to_string(base) + ".");
+        throw std::runtime_error("Ошибка: цифра "
+                                 + std::to_string(value)
+                                 + " недопустима в системе счисления с основанием "
+                                 + std::to_string(base) + ".");
     }
+
     return value;
 }
 
 BigInteger BaseParser::digitsToInteger(const std::vector<int>& digits, int base) {
     BigInteger result(0);
+
     for (int digit : digits) {
         result *= base;
         result += BigInteger(static_cast<unsigned long long>(digit));
     }
+
     return result;
 }
