@@ -219,7 +219,7 @@ public:
         if (other.isZero()) {
             throw std::runtime_error("деление на ноль");
         }
-        *this = *this - (*this / other) * other;
+        *this = *this - karatsuba((*this / other), other);
         return *this;
     }
     BigInteger operator%(const BigInteger& other) const {
@@ -227,7 +227,32 @@ public:
         result %= other;
         return result;
     }
+    static BigInteger karatsuba(const BigInteger& a, const BigInteger& b) {
+        if (a.isZero() || b.isZero()) return BigInteger();
+        if (std::max(a.digits_.size(), b.digits_.size()) <= 10) {
+            BigInteger res = a;
+            res *= b;
+            return res;
+        }
+        size_t m = std::max(a.digits_.size(), b.digits_.size()) / 2;
+        BigInteger a_low, a_high, b_low, b_high;
+        size_t a_cut = std::min(a.digits_.size(), m);
+        size_t b_cut = std::min(b.digits_.size(), m);
 
+        a_low.digits_.assign(a.digits_.begin(), a.digits_.begin() + a_cut);
+        b_low.digits_.assign(b.digits_.begin(), b.digits_.begin() + b_cut);
+
+        if (a.digits_.size() > m) a_high.digits_.assign(a.digits_.begin() + m, a.digits_.end());
+        if (b.digits_.size() > m) b_high.digits_.assign(b.digits_.begin() + m, b.digits_.end());
+        BigInteger z0 = karatsuba(a_low, b_low);
+        BigInteger z1 = karatsuba(a_high, b_high);
+        BigInteger z2 = karatsuba(a_low + a_high, b_low + b_high);
+        BigInteger mid = z2 - z1 - z0;
+        if (m > 0) mid.digits_.insert(mid.digits_.begin(), m, 0);
+        if (2 * m > 0) z1.digits_.insert(z1.digits_.begin(), 2 * m, 0);
+
+        return z0 + mid + z1;
+    }
     bool operator<(const BigInteger& other) const {
         return compare(other) < 0;
     }
