@@ -184,7 +184,6 @@ int BaseParser::readOneDigit(const std::string& text, int& pos, int base) {
                                  + " недопустима в системе счисления с основанием "
                                  + std::to_string(base) + ".");
     }
-
     return value;
 }
 

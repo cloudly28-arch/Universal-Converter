@@ -68,16 +68,15 @@ public:
         if (*this < other) throw std::runtime_error("вычитание привело бы к отрицательному числу");
         BigInteger result;
         result.digits_.reserve(digits_.size());
-        int borrow = 0;
-
+        int carry = 0;
         for (size_t i = 0; i < digits_.size(); ++i) {
-            long long cur = digits_[i] - borrow;
+            long long cur = digits_[i] - carry;
             if (i < other.digits_.size()) cur -= other.digits_[i];
             if (cur < 0) {
                 cur += BASE;
-                borrow = 1;
+                carry = 1;
             } else {
-                borrow = 0;
+                carry = 0;
             }
             result.digits_.push_back(static_cast<int>(cur));
         }
@@ -110,9 +109,23 @@ public:
     }
     BigInteger operator*(const BigInteger& other) const {
         if (isZero() || other.isZero()) return BigInteger();
-        return karatsuba(*this, other);
-    }
 
+        BigInteger result;
+        result.digits_.assign(digits_.size() + other.digits_.size(), 0);
+        for (size_t i = 0; i < digits_.size(); ++i) {
+            long long carry = 0;
+            for (size_t j = 0; j < other.digits_.size() || carry != 0; ++j) {
+                long long cur = result.digits_[i + j] + carry;
+                if (j < other.digits_.size()) {
+                    cur += 1LL * digits_[i] * other.digits_[j];
+                }
+                result.digits_[i + j] = static_cast<int>(cur % BASE);
+                carry = cur / BASE;
+            }
+        }
+        result.removeLeadingZeros();
+        return result;
+    }
     BigInteger& operator*=(const BigInteger& other) {
         *this = *this * other;
         return *this;
@@ -124,7 +137,6 @@ public:
         BigInteger quotient;
         BigInteger remainder;
         quotient.digits_.assign(digits_.size(), 0);
-
         for (int i = static_cast<int>(digits_.size()) - 1; i >= 0; --i) {
             if (remainder.digits_.empty()) {
                 remainder.digits_.push_back(0);
@@ -138,7 +150,7 @@ public:
             while (left <= right) {
                 int middle = left + (right - left) / 2;
                 BigInteger current = other;
-                current *= middle; // Использует operator*=(int)
+                current *= middle;
                 if (current <= remainder) {
                     digit = middle;
                     left = middle + 1;
@@ -216,11 +228,9 @@ public:
         BigInteger z0 = karatsuba(a_low, b_low);
         BigInteger z1 = karatsuba(a_high, b_high);
         BigInteger z2 = karatsuba(a_low + a_high, b_low + b_high);
-
-        BigInteger mid = z2 - z1 - z0; // Всегда >= 0
+        BigInteger mid = z2 - z1 - z0;
         if (m > 0) mid.digits_.insert(mid.digits_.begin(), m, 0);
         if (2 * m > 0) z1.digits_.insert(z1.digits_.begin(), 2 * m, 0);
-
         return z0 + mid + z1;
     }
 

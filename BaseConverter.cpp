@@ -11,7 +11,6 @@ ConvertResult BaseConverter::convert(const std::string& input, const std::string
     try {
         int p = parseBase(pText, "исходной");
         int q = parseBase(qText, "целевой");
-
         BigFraction value = BaseParser::parse(input, p);
         FormatResult formatted = BaseFormatter::format(value, q);
 
