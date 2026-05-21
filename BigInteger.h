@@ -154,7 +154,6 @@ public:
         result *= other;
         return result;
     }
-
     BigInteger& operator/=(int value) {
         if (value <= 0) {
             throw std::runtime_error("деление на неположительное число");
