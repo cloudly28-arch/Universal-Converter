@@ -241,7 +241,6 @@ public:
 
         a_low.digits_.assign(a.digits_.begin(), a.digits_.begin() + a_cut);
         b_low.digits_.assign(b.digits_.begin(), b.digits_.begin() + b_cut);
-
         if (a.digits_.size() > m) a_high.digits_.assign(a.digits_.begin() + m, a.digits_.end());
         if (b.digits_.size() > m) b_high.digits_.assign(b.digits_.begin() + m, b.digits_.end());
         BigInteger z0 = karatsuba(a_low, b_low);
@@ -250,7 +249,6 @@ public:
         BigInteger mid = z2 - z1 - z0;
         if (m > 0) mid.digits_.insert(mid.digits_.begin(), m, 0);
         if (2 * m > 0) z1.digits_.insert(z1.digits_.begin(), 2 * m, 0);
-
         return z0 + mid + z1;
     }
     bool operator<(const BigInteger& other) const {
@@ -303,7 +301,6 @@ private:
             digits_.pop_back();
         }
     }
-
     int compare(const BigInteger& other) const {
         if (digits_.size() != other.digits_.size()) {
             if (digits_.size() < other.digits_.size()) {

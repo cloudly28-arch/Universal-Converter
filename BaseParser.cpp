@@ -45,10 +45,8 @@ BaseParser::ParsedNumber BaseParser::readDigits(const std::string& text, int bas
     int part = 0;
 
     bool periodClosed = false;
-
     while (pos < static_cast<int>(text.size())) {
         char ch = text[pos];
-
         if (std::isspace(static_cast<unsigned char>(ch))) {
             throw std::runtime_error("Ошибка: пробелы внутри числа не допускаются.");
         }
@@ -80,13 +78,11 @@ BaseParser::ParsedNumber BaseParser::readDigits(const std::string& text, int bas
             if (result.hasPeriod) {
                 throw std::runtime_error("Ошибка: период указан больше одного раза.");
             }
-
             result.hasPeriod = true;
             part = 2;
             ++pos;
             continue;
         }
-
         if (ch == ')') {
             if (!result.hasPeriod || part != 2) {
                 throw std::runtime_error("Ошибка: лишняя закрывающая скобка периода.");
@@ -100,9 +96,7 @@ BaseParser::ParsedNumber BaseParser::readDigits(const std::string& text, int bas
             ++pos;
             continue;
         }
-
         int digit = readOneDigit(text, pos, base);
-
         if (part == 0) {
             result.integerDigits.push_back(digit);
         } else if (part == 1) {
@@ -135,7 +129,6 @@ int BaseParser::readOneDigit(const std::string& text, int& pos, int base) {
     char ch = text[pos];
 
     int value = -1;
-
     if (ch >= '0' && ch <= '9') {
         value = ch - '0';
         ++pos;
@@ -147,24 +140,18 @@ int BaseParser::readOneDigit(const std::string& text, int& pos, int base) {
         ++pos;
     } else if (ch == '[') {
         ++pos;
-
         if (pos >= static_cast<int>(text.size()) || text[pos] == ']') {
             throw std::runtime_error("Ошибка: внутри квадратных скобок должна быть цифра.");
         }
-
         std::string inside;
-
         while (pos < static_cast<int>(text.size()) && text[pos] != ']') {
             inside.push_back(text[pos]);
             ++pos;
         }
-
         if (pos == static_cast<int>(text.size())) {
             throw std::runtime_error("Ошибка: не закрыта квадратная скобка.");
         }
-
         ++pos;
-
         if (inside.size() == 1) {
             char symbol = inside[0];
 

@@ -125,6 +125,7 @@ public:
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
+        menubar->setGeometry(QRect(0, 0, 760, 26));
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName("statusbar");
@@ -141,9 +142,9 @@ public:
         inputLabel->setText(QCoreApplication::translate("MainWindow", "\320\230\321\201\321\205\320\276\320\264\320\275\320\276\320\265 \321\207\320\270\321\201\320\273\320\276:", nullptr));
         inputEdit->setPlaceholderText(QCoreApplication::translate("MainWindow", "\320\235\320\260\320\277\321\200\320\270\320\274\320\265\321\200: 0.[10][20]([30])", nullptr));
         sourceBaseLabel->setText(QCoreApplication::translate("MainWindow", "\320\236\321\201\320\275\320\276\320\262\320\260\320\275\320\270\320\265 p:", nullptr));
-        sourceBaseEdit->setPlaceholderText(QCoreApplication::translate("MainWindow", "2..500", nullptr));
+        sourceBaseEdit->setPlaceholderText(QString());
         targetBaseLabel->setText(QCoreApplication::translate("MainWindow", "\320\236\321\201\320\275\320\276\320\262\320\260\320\275\320\270\320\265 q:", nullptr));
-        targetBaseEdit->setPlaceholderText(QCoreApplication::translate("MainWindow", "2..500", nullptr));
+        targetBaseEdit->setPlaceholderText(QString());
         convertButton->setText(QCoreApplication::translate("MainWindow", "Convert", nullptr));
         loadButton->setText(QCoreApplication::translate("MainWindow", "\320\227\320\260\320\263\321\200\321\203\320\267\320\270\321\202\321\214 \320\270\320\267 \321\204\320\260\320\271\320\273\320\260", nullptr));
         saveButton->setText(QCoreApplication::translate("MainWindow", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214 \321\200\320\265\320\267\321\203\320\273\321\214\321\202\320\260\321\202", nullptr));

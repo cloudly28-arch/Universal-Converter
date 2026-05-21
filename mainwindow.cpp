@@ -56,8 +56,7 @@ void MainWindow::onLoadClicked() {
 
     if (p.isEmpty() || q.isEmpty() || input.isEmpty()) {
         QMessageBox::warning(this,
-                             "Ошибка",
-                             "Файл должен содержать три строки: p, q и input.");
+                             "Ошибка", "Файл должен содержать три строки: p, q и input.");
         return;
     }
 
